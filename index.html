@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yazaki Connector Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-plug"></i> Yazaki</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#" data-page="dashboard" class="menu-item active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="#" data-page="users" class="menu-item"><i class="fas fa-users"></i> Users</a></li>
+                <li><a href="#" data-page="connectors" class="menu-item"><i class="fas fa-plug"></i> Connectors</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <div class="top-bar-left">
+                    <button class="sidebar-toggle"><i class="fas fa-bars"></i></button>
+                    <h1 id="page-title">Dashboard</h1>
+                </div>
+                <div class="top-bar-right">
+                    <span class="user-info"><i class="fas fa-user-circle"></i> Admin</span>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="page-content">
+                <!-- Dashboard Page -->
+                <div id="dashboard-page" class="page active">
+                    <div class="welcome-section">
+                        <h2>Welcome to Yazaki Connector Manager</h2>
+                        <p>Manage your connectors and users efficiently from this dashboard.</p>
+                    </div>
+                    <div class="stats-cards">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-users"></i></div>
+                            <div class="stat-info">
+                                <h3 id="total-users">0</h3>
+                                <p>Total Users</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-plug"></i></div>
+                            <div class="stat-info">
+                                <h3 id="total-connectors">0</h3>
+                                <p>Total Connectors</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Page -->
+                <div id="users-page" class="page">
+                    <div class="page-header">
+                        <h2>Users Management</h2>
+                        <button class="btn btn-primary"><i class="fas fa-plus"></i> Add User</button>
+                    </div>
+                    <div class="filters-section">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="users-search" placeholder="Search by name or email...">
+                        </div>
+                        <select id="users-role-filter" class="filter-select">
+                            <option value="">All Roles</option>
+                            <option value="admin">Admin</option>
+                            <option value="manager">Manager</option>
+                            <option value="user">User</option>
+                        </select>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <!-- Users data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="users-pagination">
+                        <!-- Pagination will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Connectors Page -->
+                <div id="connectors-page" class="page">
+                    <div class="page-header">
+                        <h2>Connectors Management</h2>
+                        <button class="btn btn-primary"><i class="fas fa-plus"></i> Add Connector</button>
+                    </div>
+                    <div class="filters-section">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="connectors-search" placeholder="Search by part numbers...">
+                        </div>
+                        <select id="connectors-supplier-filter" class="filter-select">
+                            <option value="">All Suppliers</option>
+                        </select>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Yazaki PN</th>
+                                    <th>Customer PN</th>
+                                    <th>Supplier PN</th>
+                                    <th>Supplier Name</th>
+                                    <th>Price</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="connectors-table-body">
+                                <!-- Connectors data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="connectors-pagination">
+                        <!-- Pagination will be populated here -->
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

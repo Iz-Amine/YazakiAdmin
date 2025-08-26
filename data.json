@@ -1,0 +1,286 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "John Smith",
+      "email": "john.smith@yazaki.com",
+      "role": "admin",
+      "createdAt": "2024-01-15"
+    },
+    {
+      "id": 2,
+      "name": "Sarah Johnson",
+      "email": "sarah.johnson@yazaki.com",
+      "role": "manager",
+      "createdAt": "2024-02-20"
+    },
+    {
+      "id": 3,
+      "name": "Mike Chen",
+      "email": "mike.chen@yazaki.com",
+      "role": "user",
+      "createdAt": "2024-03-10"
+    },
+    {
+      "id": 4,
+      "name": "Emily Davis",
+      "email": "emily.davis@yazaki.com",
+      "role": "user",
+      "createdAt": "2024-03-15"
+    },
+    {
+      "id": 5,
+      "name": "Robert Wilson",
+      "email": "robert.wilson@yazaki.com",
+      "role": "manager",
+      "createdAt": "2024-04-01"
+    },
+    {
+      "id": 6,
+      "name": "Lisa Anderson",
+      "email": "lisa.anderson@yazaki.com",
+      "role": "user",
+      "createdAt": "2024-04-12"
+    },
+    {
+      "id": 7,
+      "name": "David Brown",
+      "email": "david.brown@yazaki.com",
+      "role": "admin",
+      "createdAt": "2024-05-05"
+    },
+    {
+      "id": 8,
+      "name": "Jennifer Taylor",
+      "email": "jennifer.taylor@yazaki.com",
+      "role": "user",
+      "createdAt": "2024-05-20"
+    },
+    {
+      "id": 9,
+      "name": "James Miller",
+      "email": "james.miller@yazaki.com",
+      "role": "manager",
+      "createdAt": "2024-06-01"
+    },
+    {
+      "id": 10,
+      "name": "Maria Garcia",
+      "email": "maria.garcia@yazaki.com",
+      "role": "user",
+      "createdAt": "2024-06-15"
+    },
+    {
+      "id": 11,
+      "name": "Kevin Lee",
+      "email": "kevin.lee@yazaki.com",
+      "role": "user",
+      "createdAt": "2024-07-01"
+    },
+    {
+      "id": 12,
+      "name": "Amanda White",
+      "email": "amanda.white@yazaki.com",
+      "role": "manager",
+      "createdAt": "2024-07-10"
+    },
+    {
+      "id": 13,
+      "name": "Thomas Clark",
+      "email": "thomas.clark@yazaki.com",
+      "role": "user",
+      "createdAt": "2024-07-25"
+    },
+    {
+      "id": 14,
+      "name": "Rachel Green",
+      "email": "rachel.green@yazaki.com",
+      "role": "admin",
+      "createdAt": "2024-08-01"
+    },
+    {
+      "id": 15,
+      "name": "Daniel Martinez",
+      "email": "daniel.martinez@yazaki.com",
+      "role": "user",
+      "createdAt": "2024-08-15"
+    }
+  ],
+  "connectors": [
+    {
+      "yazakiPN": "YZK-001-A",
+      "customerPN": "CUST-2024-001",
+      "supplierPN": "SUP-TEX-001",
+      "supplierName": "TE Connectivity",
+      "price": 12.50
+    },
+    {
+      "yazakiPN": "YZK-002-B",
+      "customerPN": "CUST-2024-002",
+      "supplierPN": "SUP-MOL-002",
+      "supplierName": "Molex",
+      "price": 8.75
+    },
+    {
+      "yazakiPN": "YZK-003-C",
+      "customerPN": "CUST-2024-003",
+      "supplierPN": "SUP-AMP-003",
+      "supplierName": "Amphenol",
+      "price": 15.20
+    },
+    {
+      "yazakiPN": "YZK-004-D",
+      "customerPN": "CUST-2024-004",
+      "supplierPN": "SUP-TEX-004",
+      "supplierName": "TE Connectivity",
+      "price": 22.30
+    },
+    {
+      "yazakiPN": "YZK-005-E",
+      "customerPN": "CUST-2024-005",
+      "supplierPN": "SUP-JST-005",
+      "supplierName": "JST",
+      "price": 6.90
+    },
+    {
+      "yazakiPN": "YZK-006-F",
+      "customerPN": "CUST-2024-006",
+      "supplierPN": "SUP-MOL-006",
+      "supplierName": "Molex",
+      "price": 18.45
+    },
+    {
+      "yazakiPN": "YZK-007-G",
+      "customerPN": "CUST-2024-007",
+      "supplierPN": "SUP-DEL-007",
+      "supplierName": "Delphi",
+      "price": 11.80
+    },
+    {
+      "yazakiPN": "YZK-008-H",
+      "customerPN": "CUST-2024-008",
+      "supplierPN": "SUP-AMP-008",
+      "supplierName": "Amphenol",
+      "price": 25.60
+    },
+    {
+      "yazakiPN": "YZK-009-I",
+      "customerPN": "CUST-2024-009",
+      "supplierPN": "SUP-JST-009",
+      "supplierName": "JST",
+      "price": 9.35
+    },
+    {
+      "yazakiPN": "YZK-010-J",
+      "customerPN": "CUST-2024-010",
+      "supplierPN": "SUP-TEX-010",
+      "supplierName": "TE Connectivity",
+      "price": 14.75
+    },
+    {
+      "yazakiPN": "YZK-011-K",
+      "customerPN": "CUST-2024-011",
+      "supplierPN": "SUP-MOL-011",
+      "supplierName": "Molex",
+      "price": 7.25
+    },
+    {
+      "yazakiPN": "YZK-012-L",
+      "customerPN": "CUST-2024-012",
+      "supplierPN": "SUP-HIR-012",
+      "supplierName": "Hirose",
+      "price": 31.40
+    },
+    {
+      "yazakiPN": "YZK-013-M",
+      "customerPN": "CUST-2024-013",
+      "supplierPN": "SUP-DEL-013",
+      "supplierName": "Delphi",
+      "price": 16.85
+    },
+    {
+      "yazakiPN": "YZK-014-N",
+      "customerPN": "CUST-2024-014",
+      "supplierPN": "SUP-AMP-014",
+      "supplierName": "Amphenol",
+      "price": 19.95
+    },
+    {
+      "yazakiPN": "YZK-015-O",
+      "customerPN": "CUST-2024-015",
+      "supplierPN": "SUP-JST-015",
+      "supplierName": "JST",
+      "price": 5.60
+    },
+    {
+      "yazakiPN": "YZK-016-P",
+      "customerPN": "CUST-2024-016",
+      "supplierPN": "SUP-TEX-016",
+      "supplierName": "TE Connectivity",
+      "price": 28.70
+    },
+    {
+      "yazakiPN": "YZK-017-Q",
+      "customerPN": "CUST-2024-017",
+      "supplierPN": "SUP-MOL-017",
+      "supplierName": "Molex",
+      "price": 13.20
+    },
+    {
+      "yazakiPN": "YZK-018-R",
+      "customerPN": "CUST-2024-018",
+      "supplierPN": "SUP-HIR-018",
+      "supplierName": "Hirose",
+      "price": 24.15
+    },
+    {
+      "yazakiPN": "YZK-019-S",
+      "customerPN": "CUST-2024-019",
+      "supplierPN": "SUP-DEL-019",
+      "supplierName": "Delphi",
+      "price": 10.50
+    },
+    {
+      "yazakiPN": "YZK-020-T",
+      "customerPN": "CUST-2024-020",
+      "supplierPN": "SUP-AMP-020",
+      "supplierName": "Amphenol",
+      "price": 17.30
+    },
+    {
+      "yazakiPN": "YZK-021-U",
+      "customerPN": "CUST-2024-021",
+      "supplierPN": "SUP-JST-021",
+      "supplierName": "JST",
+      "price": 8.90
+    },
+    {
+      "yazakiPN": "YZK-022-V",
+      "customerPN": "CUST-2024-022",
+      "supplierPN": "SUP-TEX-022",
+      "supplierName": "TE Connectivity",
+      "price": 21.65
+    },
+    {
+      "yazakiPN": "YZK-023-W",
+      "customerPN": "CUST-2024-023",
+      "supplierPN": "SUP-MOL-023",
+      "supplierName": "Molex",
+      "price": 12.40
+    },
+    {
+      "yazakiPN": "YZK-024-X",
+      "customerPN": "CUST-2024-024",
+      "supplierPN": "SUP-HIR-024",
+      "supplierName": "Hirose",
+      "price": 35.80
+    },
+    {
+      "yazakiPN": "YZK-025-Y",
+      "customerPN": "CUST-2024-025",
+      "supplierPN": "SUP-DEL-025",
+      "supplierName": "Delphi",
+      "price": 14.25
+    }
+  ]
+}
