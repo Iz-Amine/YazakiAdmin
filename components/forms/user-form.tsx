@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import type { User } from "@/app/page"
 
@@ -13,7 +12,7 @@ interface UserFormProps {
 
 export default function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
   const [formData, setFormData] = useState({
-    name: user?.name || "",
+    full_name: user?.full_name || "",
     email: user?.email || "",
     role: user?.role || ("user" as const),
     createdAt: user?.createdAt || new Date().toISOString().split("T")[0],
@@ -47,8 +46,8 @@ export default function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
         <input
           type="text"
           id="name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          value={formData.full_name}
+          onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           required
         />
@@ -74,7 +73,7 @@ export default function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
         </label>
         <select
           id="role"
-          value={formData.role}
+          value={formData.role || "user"}
           onChange={(e) => setFormData({ ...formData, role: e.target.value as "admin" | "manager" | "user" })}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >

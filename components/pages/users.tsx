@@ -1,6 +1,5 @@
 "use client"
-
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import type { User } from "@/app/page"
 import Pagination from "@/components/pagination"
 import Modal from "@/components/ui/modal"
@@ -9,11 +8,21 @@ import UserForm from "@/components/forms/user-form"
 interface UsersProps {
   users: User[]
   onAddUser: (userData: Omit<User, "id">) => Promise<User>
-  onUpdateUser: (user: User) => Promise<User>
+  onUpdateUser: (updatedUser: User) => Promise<User>
   onDeleteUser: (userId: number) => Promise<void>
+  apiBaseUrl?: string
 }
 
-export default function Users({ users, onAddUser, onUpdateUser, onDeleteUser }: UsersProps) {
+export default function Users({ 
+  users: initialUsers, 
+  onAddUser, 
+  onUpdateUser, 
+  onDeleteUser, 
+  apiBaseUrl = "http://localhost:5000/api" 
+}: UsersProps) {
+  const [users, setUsers] = useState<User[]>(initialUsers)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [roleFilter, setRoleFilter] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -21,11 +30,21 @@ export default function Users({ users, onAddUser, onUpdateUser, onDeleteUser }: 
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const itemsPerPage = 10
 
+  // Update local state when props change
+  useEffect(() => {
+    setUsers(initialUsers)
+  }, [initialUsers])
+
+  // Filtering and pagination logic
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
+      // Safe string handling with fallback to empty string
+      const fullName = user.full_name || ""
+      const email = user.email || ""
+      
       const matchesSearch =
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+        fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        email.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesRole = !roleFilter || user.role === roleFilter
       return matchesSearch && matchesRole
     })
@@ -45,7 +64,11 @@ export default function Users({ users, onAddUser, onUpdateUser, onDeleteUser }: 
 
   const handleDelete = async (user: User) => {
     if (confirm("Are you sure you want to delete this user?")) {
-      await onDeleteUser(user.id)
+      try {
+        await onDeleteUser(user.id)
+      } catch (err) {
+        alert(err instanceof Error ? err.message : "Failed to delete user")
+      }
     }
   }
 
@@ -55,10 +78,16 @@ export default function Users({ users, onAddUser, onUpdateUser, onDeleteUser }: 
   }
 
   const handleFormSubmit = async (userData: Omit<User, "id"> | User) => {
-    if (editingUser) {
-      await onUpdateUser(userData as User)
-    } else {
-      await onAddUser(userData as Omit<User, "id">)
+    try {
+      if (editingUser) {
+        await onUpdateUser(userData as User)
+      } else {
+        await onAddUser(userData as Omit<User, "id">)
+      }
+      setShowModal(false)
+      setEditingUser(null)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to save user")
     }
   }
 
@@ -68,6 +97,7 @@ export default function Users({ users, onAddUser, onUpdateUser, onDeleteUser }: 
   }
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A"
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -75,7 +105,7 @@ export default function Users({ users, onAddUser, onUpdateUser, onDeleteUser }: 
     })
   }
 
-  const getRoleBadgeColor = (role: string) => {
+  const getRoleBadgeColor = (role: string | null) => {
     switch (role) {
       case "admin":
         return "bg-red-100 text-red-800"
@@ -83,9 +113,30 @@ export default function Users({ users, onAddUser, onUpdateUser, onDeleteUser }: 
         return "bg-blue-100 text-blue-800"
       case "user":
         return "bg-green-100 text-green-800"
+      case null:
+        return "bg-gray-100 text-gray-800"
       default:
         return "bg-gray-100 text-gray-800"
     }
+  }
+
+  if (loading) {
+    return <div className="flex justify-center items-center h-64">Loading users...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <h3 className="text-red-800 font-semibold">Error</h3>
+        <p className="text-red-600">{error}</p>
+        <button
+          onClick={() => setUsers(initialUsers)}
+          className="mt-2 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+        >
+          Reset
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -148,8 +199,12 @@ export default function Users({ users, onAddUser, onUpdateUser, onDeleteUser }: 
               {paginatedUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.email}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {user.full_name || "N/A"}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {user.email || "N/A"}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}
@@ -157,7 +212,9 @@ export default function Users({ users, onAddUser, onUpdateUser, onDeleteUser }: 
                       {user.role}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatDate(user.createdAt)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {formatDate(user.createdAt)}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       <button

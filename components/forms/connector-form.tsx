@@ -1,14 +1,13 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import type { Connector } from "@/app/page"
+import type React from "react";
+import { useState } from "react";
+import type { Connector } from "@/app/page";
 
 interface ConnectorFormProps {
-  connector?: Connector
-  onSubmit: (connectorData: Connector) => Promise<void>
-  onCancel: () => void
+  connector?: Connector;
+  onSubmit: (connectorData: Connector) => Promise<void>;
+  onCancel: () => void;
 }
 
 export default function ConnectorForm({ connector, onSubmit, onCancel }: ConnectorFormProps) {
@@ -17,32 +16,41 @@ export default function ConnectorForm({ connector, onSubmit, onCancel }: Connect
     customerPN: connector?.customerPN || "",
     supplierPN: connector?.supplierPN || "",
     supplierName: connector?.supplierName || "",
-    price: connector?.price || 0,
+    connectorName: connector?.connectorName || "", // optional
+    price: connector?.price ?? null as number | null, // allow null
     drawing_2d_path: connector?.drawing_2d_path || "",
     model_3d_path: connector?.model_3d_path || "",
     image_path: connector?.image_path || "",
-  })
-  const [loading, setLoading] = useState(false)
+  });
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
     try {
-      const submitData = {
-        ...formData,
+      const submitData: Connector = {
+        id: connector?.id, // keep id on edit
+        yazakiPN: formData.yazakiPN,
+        customerPN: formData.customerPN,
+        supplierPN: formData.supplierPN,
+        supplierName: formData.supplierName,
+        connectorName: formData.connectorName || null,
+        price: formData.price === null || Number.isNaN(formData.price) ? null : Number(formData.price),
         drawing_2d_path: formData.drawing_2d_path || null,
         model_3d_path: formData.model_3d_path || null,
         image_path: formData.image_path || null,
-      }
-      await onSubmit(submitData)
-      onCancel()
+      };
+      await onSubmit(submitData);
+      onCancel();
     } catch (error) {
-      console.error("Error submitting connector:", error)
-      alert("Error saving connector. Please try again.")
+      console.error("Error submitting connector:", error);
+      alert("Error saving connector. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000").replace(/\/+$/, "");
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -57,7 +65,7 @@ export default function ConnectorForm({ connector, onSubmit, onCancel }: Connect
           onChange={(e) => setFormData({ ...formData, yazakiPN: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           required
-          disabled={!!connector} // Disable editing Yazaki PN for existing connectors
+          disabled={!!connector} // lock on edit
         />
       </div>
 
@@ -104,18 +112,34 @@ export default function ConnectorForm({ connector, onSubmit, onCancel }: Connect
       </div>
 
       <div>
+        <label htmlFor="connectorName" className="block text-sm font-medium text-gray-700 mb-1">
+          Connector Name (optional)
+        </label>
+        <input
+          type="text"
+          id="connectorName"
+          value={formData.connectorName}
+          onChange={(e) => setFormData({ ...formData, connectorName: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="e.g., 6570B"
+        />
+      </div>
+
+      <div>
         <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-          Price ($)
+          Price ($, optional)
         </label>
         <input
           type="number"
           id="price"
           step="0.01"
           min="0"
-          value={formData.price}
-          onChange={(e) => setFormData({ ...formData, price: Number.parseFloat(e.target.value) || 0 })}
+          value={formData.price ?? ""} // blank if null
+          onChange={(e) => {
+            const v = e.target.value;
+            setFormData({ ...formData, price: v === "" ? null : Number.parseFloat(v) });
+          }}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          required
         />
       </div>
 
@@ -151,14 +175,26 @@ export default function ConnectorForm({ connector, onSubmit, onCancel }: Connect
         <label htmlFor="image_path" className="block text-sm font-medium text-gray-700 mb-1">
           Image Path (Optional)
         </label>
-        <input
-          type="text"
-          id="image_path"
-          value={formData.image_path}
-          onChange={(e) => setFormData({ ...formData, image_path: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="/files/images/YZ-XXX.jpg"
-        />
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            id="image_path"
+            value={formData.image_path}
+            onChange={(e) => setFormData({ ...formData, image_path: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="/images/YZ-XXX.jpg"
+          />
+          {formData.image_path ? (
+            <a
+              href={`${backendUrl}${formData.image_path.startsWith("/") ? formData.image_path : `/${formData.image_path}`}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm text-blue-600 underline"
+            >
+              Open
+            </a>
+          ) : null}
+        </div>
       </div>
 
       <div className="flex justify-end space-x-3 pt-4">
@@ -179,5 +215,5 @@ export default function ConnectorForm({ connector, onSubmit, onCancel }: Connect
         </button>
       </div>
     </form>
-  )
+  );
 }

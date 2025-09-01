@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import { useState, useMemo } from "react"
-import type { Connector } from "@/app/page"
-import Pagination from "@/components/pagination"
-import Modal from "@/components/ui/modal"
-import ConnectorForm from "@/components/forms/connector-form"
+import { useState, useMemo } from "react";
+import type { Connector } from "@/app/page";
+import Pagination from "@/components/pagination";
+import Modal from "@/components/ui/modal";
+import ConnectorForm from "@/components/forms/connector-form";
 
 interface ConnectorsProps {
-  connectors: Connector[]
-  onAddConnector: (connectorData: Connector) => Promise<Connector>
-  onUpdateConnector: (connector: Connector) => Promise<Connector>
-  onDeleteConnector: (yazakiPN: string) => Promise<void>
+  connectors: Connector[];
+  onAddConnector: (connectorData: Connector) => Promise<Connector>;
+  onUpdateConnector: (connector: Connector) => Promise<Connector>;
+  onDeleteConnector: (yazakiPN: string) => Promise<void>;
 }
 
 export default function Connectors({
@@ -19,63 +19,69 @@ export default function Connectors({
   onUpdateConnector,
   onDeleteConnector,
 }: ConnectorsProps) {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [supplierFilter, setSupplierFilter] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [showModal, setShowModal] = useState(false)
-  const [editingConnector, setEditingConnector] = useState<Connector | null>(null)
-  const itemsPerPage = 10
+  const [searchTerm, setSearchTerm] = useState("");
+  const [supplierFilter, setSupplierFilter] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showModal, setShowModal] = useState(false);
+  const [editingConnector, setEditingConnector] = useState<Connector | null>(null);
+  const itemsPerPage = 10;
 
   const suppliers = useMemo(() => {
-    return [...new Set(connectors.map((c) => c.supplierName))].sort()
-  }, [connectors])
+    return [...new Set(connectors.map((c) => c.supplierName))].sort();
+  }, [connectors]);
 
   const filteredConnectors = useMemo(() => {
     return connectors.filter((connector) => {
+      const q = searchTerm.toLowerCase();
       const matchesSearch =
-        connector.yazakiPN.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        connector.customerPN.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        connector.supplierPN.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesSupplier = !supplierFilter || connector.supplierName === supplierFilter
-      return matchesSearch && matchesSupplier
-    })
-  }, [connectors, searchTerm, supplierFilter])
+        connector.yazakiPN.toLowerCase().includes(q) ||
+        connector.customerPN.toLowerCase().includes(q) ||
+        connector.supplierPN.toLowerCase().includes(q);
+      const matchesSupplier = !supplierFilter || connector.supplierName === supplierFilter;
+      return matchesSearch && matchesSupplier;
+    });
+  }, [connectors, searchTerm, supplierFilter]);
 
   const paginatedConnectors = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage
-    return filteredConnectors.slice(startIndex, startIndex + itemsPerPage)
-  }, [filteredConnectors, currentPage])
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredConnectors.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredConnectors, currentPage]);
 
-  const totalPages = Math.ceil(filteredConnectors.length / itemsPerPage)
+  const totalPages = Math.ceil(filteredConnectors.length / itemsPerPage);
 
   const handleEdit = (connector: Connector) => {
-    setEditingConnector(connector)
-    setShowModal(true)
-  }
+    setEditingConnector(connector);
+    setShowModal(true);
+  };
 
   const handleDelete = async (connector: Connector) => {
     if (confirm("Are you sure you want to delete this connector?")) {
-      await onDeleteConnector(connector.yazakiPN)
+      await onDeleteConnector(connector.yazakiPN);
     }
-  }
+  };
 
   const handleAddConnector = () => {
-    setEditingConnector(null)
-    setShowModal(true)
-  }
+    setEditingConnector(null);
+    setShowModal(true);
+  };
 
   const handleFormSubmit = async (connectorData: Connector) => {
     if (editingConnector) {
-      await onUpdateConnector(connectorData)
+      // preserve id for update
+      await onUpdateConnector({ ...editingConnector, ...connectorData, id: editingConnector.id });
     } else {
-      await onAddConnector(connectorData)
+      await onAddConnector(connectorData);
     }
-  }
+    setShowModal(false);
+    setEditingConnector(null);
+  };
 
   const handleCloseModal = () => {
-    setShowModal(false)
-    setEditingConnector(null)
-  }
+    setShowModal(false);
+    setEditingConnector(null);
+  };
+
+  const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000").replace(/\/+$/, "");
 
   return (
     <div className="space-y-6">
@@ -122,6 +128,9 @@ export default function Connectors({
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Image
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Yazaki PN
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -144,13 +153,28 @@ export default function Connectors({
             <tbody className="bg-white divide-y divide-gray-200">
               {paginatedConnectors.map((connector) => (
                 <tr key={connector.yazakiPN} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {connector.image_path ? (
+                      <img
+                        src={`${backendUrl}${connector.image_path}`}
+                        alt={connector.yazakiPN}
+                        className="h-10 w-10 rounded object-cover border"
+                      />
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {connector.yazakiPN}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{connector.customerPN}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{connector.supplierPN}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{connector.supplierName}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${connector.price.toFixed(2)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {connector.price !== null && connector.price !== undefined
+                      ? `$${connector.price.toFixed(2)}`
+                      : "—"}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       <button
@@ -196,5 +220,5 @@ export default function Connectors({
         />
       </Modal>
     </div>
-  )
+  );
 }
