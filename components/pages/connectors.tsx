@@ -65,15 +65,100 @@ export default function Connectors({
     setShowModal(true);
   };
 
-  const handleFormSubmit = async (connectorData: Connector) => {
-    if (editingConnector) {
-      // preserve id for update
-      await onUpdateConnector({ ...editingConnector, ...connectorData, id: editingConnector.id });
-    } else {
-      await onAddConnector(connectorData);
+  const handleFormSubmit = async (
+    connectorData: Connector,
+    files?: {
+      image?: File;
+      drawing2d?: File;
+      model3d?: File;
     }
-    setShowModal(false);
-    setEditingConnector(null);
+  ) => {
+    try {
+      let updatedConnectorData: Connector = { ...connectorData };
+
+      const toRenderablePath = (value: string | null | undefined): string | null => {
+        if (!value) return null;
+        const str = String(value);
+        if (/^https?:\/\//i.test(str)) return str; // already absolute URL
+        return str.startsWith('/') ? str : `/${str}`;
+      };
+
+      const stripMediaPrefix = (value: string | null | undefined): string | null => {
+        if (!value) return null;
+        // Remove a leading /media/ if present, keep a single leading slash
+        return (`/${String(value).replace(/^\/?media\//i, '')}`).replace(/\/+/g, '/');
+      };
+
+      // Upload files first (if any), then merge returned paths into connector payload
+      const hasAnyFile = Boolean(files && (files.image || files.drawing2d || files.model3d));
+      if (hasAnyFile) {
+        const uploadFormData = new FormData();
+
+        // Base filename based on Yazaki PN so backend can name consistently
+        uploadFormData.append('base_filename', connectorData.yazakiPN);
+
+        // Subdirectory hints (adjust to your backend logic)
+        uploadFormData.append('subdir1', 'images');
+        uploadFormData.append('subdir2', '2d_drawing_files');
+        uploadFormData.append('subdir3', '3d_drawing_files');
+
+        // Files
+        if (files?.image) uploadFormData.append('file1', files.image);
+        if (files?.drawing2d) uploadFormData.append('file2', files.drawing2d);
+        if (files?.model3d) uploadFormData.append('file3', files.model3d);
+
+        const uploadUrl = `${backendUrl}/upload`;
+        const headers: HeadersInit = {};
+        if (uploadUrl.includes('ngrok')) headers['ngrok-skip-browser-warning'] = 'true';
+
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'POST',
+          body: uploadFormData,
+          headers,
+        });
+
+        if (!uploadResponse.ok) {
+          const errText = await uploadResponse.text().catch(() => '');
+          throw new Error(`Failed to upload files: ${uploadResponse.status} ${uploadResponse.statusText} - ${errText}`);
+        }
+
+        const uploadResult = await uploadResponse.json();
+        console.log('[connectors] upload result:', uploadResult);
+
+        // Adapt to backend response shape: { files: [{ file_number, full_url, file_path, ... }, ...] }
+        const resultFiles: Array<any> = Array.isArray(uploadResult?.files) ? uploadResult.files : [];
+        const byNumber = (n: number) => resultFiles.find((f) => Number(f?.file_number) === n);
+
+        const file1 = byNumber(1);
+        const file2 = byNumber(2);
+        const file3 = byNumber(3);
+
+        if (files?.image && (file1?.full_url || file1?.file_path)) {
+          const p = file1.full_url || file1.file_path;
+          updatedConnectorData.image_path = toRenderablePath(stripMediaPrefix(p));
+        }
+        if (files?.drawing2d && (file2?.full_url || file2?.file_path)) {
+          const p = file2.full_url || file2.file_path;
+          updatedConnectorData.drawing_2d_path = toRenderablePath(stripMediaPrefix(p));
+        }
+        if (files?.model3d && (file3?.full_url || file3?.file_path)) {
+          const p = file3.full_url || file3.file_path;
+          updatedConnectorData.model_3d_path = toRenderablePath(stripMediaPrefix(p));
+        }
+      }
+
+      // Save/update connector with the merged file paths
+      if (editingConnector) {
+        await onUpdateConnector({ ...editingConnector, ...updatedConnectorData, id: editingConnector.id });
+      } else {
+        await onAddConnector(updatedConnectorData);
+      }
+      setShowModal(false);
+      setEditingConnector(null);
+    } catch (error) {
+      console.error('Error saving connector:', error);
+      alert('Error saving connector. Please try again.');
+    }
   };
 
   const handleCloseModal = () => {

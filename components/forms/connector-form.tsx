@@ -6,7 +6,11 @@ import type { Connector } from "@/app/page";
 
 interface ConnectorFormProps {
   connector?: Connector;
-  onSubmit: (connectorData: Connector) => Promise<void>;
+  onSubmit: (connectorData: Connector, files?: {
+    image?: File;
+    drawing2d?: File;
+    model3d?: File;
+  }) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -16,12 +20,19 @@ export default function ConnectorForm({ connector, onSubmit, onCancel }: Connect
     customerPN: connector?.customerPN || "",
     supplierPN: connector?.supplierPN || "",
     supplierName: connector?.supplierName || "",
-    connectorName: connector?.connectorName || "", // optional
-    price: connector?.price ?? null as number | null, // allow null
+    connectorName: connector?.connectorName || "",
+    price: connector?.price ?? null as number | null,
     drawing_2d_path: connector?.drawing_2d_path || "",
     model_3d_path: connector?.model_3d_path || "",
     image_path: connector?.image_path || "",
   });
+  
+  const [files, setFiles] = useState<{
+    image?: File;
+    drawing2d?: File;
+    model3d?: File;
+  }>({});
+  
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,7 +40,7 @@ export default function ConnectorForm({ connector, onSubmit, onCancel }: Connect
     setLoading(true);
     try {
       const submitData: Connector = {
-        id: connector?.id, // keep id on edit
+        id: connector?.id,
         yazakiPN: formData.yazakiPN,
         customerPN: formData.customerPN,
         supplierPN: formData.supplierPN,
@@ -40,7 +51,8 @@ export default function ConnectorForm({ connector, onSubmit, onCancel }: Connect
         model_3d_path: formData.model_3d_path || null,
         image_path: formData.image_path || null,
       };
-      await onSubmit(submitData);
+      
+      await onSubmit(submitData, files);
       onCancel();
     } catch (error) {
       console.error("Error submitting connector:", error);
@@ -54,6 +66,7 @@ export default function ConnectorForm({ connector, onSubmit, onCancel }: Connect
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Keep all existing fields exactly the same */}
       <div>
         <label htmlFor="yazakiPN" className="block text-sm font-medium text-gray-700 mb-1">
           Yazaki PN
@@ -65,7 +78,7 @@ export default function ConnectorForm({ connector, onSubmit, onCancel }: Connect
           onChange={(e) => setFormData({ ...formData, yazakiPN: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           required
-          disabled={!!connector} // lock on edit
+          disabled={!!connector}
         />
       </div>
 
@@ -134,7 +147,7 @@ export default function ConnectorForm({ connector, onSubmit, onCancel }: Connect
           id="price"
           step="0.01"
           min="0"
-          value={formData.price ?? ""} // blank if null
+          value={formData.price ?? ""}
           onChange={(e) => {
             const v = e.target.value;
             setFormData({ ...formData, price: v === "" ? null : Number.parseFloat(v) });
@@ -143,58 +156,80 @@ export default function ConnectorForm({ connector, onSubmit, onCancel }: Connect
         />
       </div>
 
+      {/* REPLACE THE OLD PATH INPUTS WITH THESE FILE INPUTS */}
       <div>
-        <label htmlFor="drawing_2d_path" className="block text-sm font-medium text-gray-700 mb-1">
-          2D Drawing Path (Optional)
+        <label htmlFor="image_upload" className="block text-sm font-medium text-gray-700 mb-1">
+          Image Upload (Optional)
         </label>
         <input
-          type="text"
-          id="drawing_2d_path"
-          value={formData.drawing_2d_path}
-          onChange={(e) => setFormData({ ...formData, drawing_2d_path: e.target.value })}
+          type="file"
+          id="image_upload"
+          accept="image/*"
+          onChange={(e) => setFiles({ ...files, image: e.target.files?.[0] })}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="/files/drawings/YZ-XXX-2D.pdf"
         />
-      </div>
-
-      <div>
-        <label htmlFor="model_3d_path" className="block text-sm font-medium text-gray-700 mb-1">
-          3D Model Path (Optional)
-        </label>
-        <input
-          type="text"
-          id="model_3d_path"
-          value={formData.model_3d_path}
-          onChange={(e) => setFormData({ ...formData, model_3d_path: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="/files/models/YZ-XXX-3D.step"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="image_path" className="block text-sm font-medium text-gray-700 mb-1">
-          Image Path (Optional)
-        </label>
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            id="image_path"
-            value={formData.image_path}
-            onChange={(e) => setFormData({ ...formData, image_path: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="/images/YZ-XXX.jpg"
-          />
-          {formData.image_path ? (
+        {formData.image_path && (
+          <div className="mt-1">
             <a
-              href={`${backendUrl}${formData.image_path.startsWith("/") ? formData.image_path : `/${formData.image_path}`}`}
+              href={`${backendUrl}/media/${formData.image_path}`}
               target="_blank"
               rel="noreferrer"
               className="text-sm text-blue-600 underline"
             >
-              Open
+              View current image
             </a>
-          ) : null}
-        </div>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <label htmlFor="drawing_2d_upload" className="block text-sm font-medium text-gray-700 mb-1">
+          2D Drawing Upload (Optional)
+        </label>
+        <input
+          type="file"
+          id="drawing_2d_upload"
+          accept=".pdf,.dwg,.dxf"
+          onChange={(e) => setFiles({ ...files, drawing2d: e.target.files?.[0] })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+        {formData.drawing_2d_path && (
+          <div className="mt-1">
+            <a
+              href={`${backendUrl}/media/${formData.drawing_2d_path}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm text-blue-600 underline"
+            >
+              View current drawing
+            </a>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <label htmlFor="model_3d_upload" className="block text-sm font-medium text-gray-700 mb-1">
+          3D Model Upload (Optional)
+        </label>
+        <input
+          type="file"
+          id="model_3d_upload"
+          accept=".step,.stp,.iges,.igs,.stl,.obj"
+          onChange={(e) => setFiles({ ...files, model3d: e.target.files?.[0] })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+        {formData.model_3d_path && (
+          <div className="mt-1">
+            <a
+              href={`${backendUrl}/media/${formData.model_3d_path}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm text-blue-600 underline"
+            >
+              View current model
+            </a>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end space-x-3 pt-4">

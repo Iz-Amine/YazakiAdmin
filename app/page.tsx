@@ -152,7 +152,7 @@ export default function AdminDashboard() {
       console.log("[AdminDashboard] BACKEND_URL =", backendUrl);
 
       // USERS
-      const usersUrl = `${backendUrl}/api/users`;
+      const usersUrl = `${backendUrl}/users`;
       const usersData = await fetchJSON(usersUrl, {
         method: "GET",
         mode: "cors",
@@ -168,7 +168,7 @@ export default function AdminDashboard() {
       }));
 
       // CONNECTORS
-      const connectorsUrl = `${backendUrl}/api/connectors`;
+      const connectorsUrl = `${backendUrl}/connectors`;
       const connectorsData = await fetchJSON(connectorsUrl, {
         method: "GET",
         mode: "cors",
@@ -189,7 +189,7 @@ export default function AdminDashboard() {
 
   // USERS CRUD
   const addUser = async (userData: Omit<User, "id">) => {
-    const url = `${backendUrl}/api/users`;
+    const url = `${backendUrl}/users`;
     const backendData = {
       full_name: userData.full_name,
       email: userData.email,
@@ -216,7 +216,7 @@ export default function AdminDashboard() {
   };
 
   const updateUser = async (updatedUser: User) => {
-    const url = `${backendUrl}/api/users/${updatedUser.id}`;
+    const url = `${backendUrl}/users/${updatedUser.id}`;
     const backendData = {
       full_name: updatedUser.full_name,
       email: updatedUser.email,
@@ -246,7 +246,7 @@ export default function AdminDashboard() {
   };
 
   const deleteUser = async (userId: number) => {
-    const url = `${backendUrl}/api/users/${userId}`;
+    const url = `${backendUrl}/users/${userId}`;
     const res = await fetch(url, { method: "DELETE", mode: "cors", headers: apiHeaders(url) });
     const text = await res.text();
     if (!res.ok) throw new Error(`Failed to delete user: ${res.status} ${res.statusText} - ${text}`);
@@ -258,7 +258,7 @@ export default function AdminDashboard() {
 
   // CONNECTORS CRUD (ID-based)
   const addConnector = async (connectorData: Connector) => {
-    const url = `${backendUrl}/api/connectors`;
+    const url = `${backendUrl}/connectors`;
     const res = await fetch(url, {
       method: "POST",
       mode: "cors",
@@ -274,7 +274,7 @@ export default function AdminDashboard() {
 
   const updateConnector = async (updatedConnector: Connector) => {
     if (!updatedConnector.id) throw new Error("Missing connector.id for update");
-    const url = `${backendUrl}/api/connectors/${updatedConnector.id}`;
+    const url = `${backendUrl}/connectors/${updatedConnector.id}`;
     const res = await fetch(url, {
       method: "PUT",
       mode: "cors",
@@ -294,7 +294,7 @@ export default function AdminDashboard() {
   const deleteConnector = async (yazakiPN: string) => {
     const target = appData.connectors.find((c) => c.yazakiPN === yazakiPN);
     if (!target?.id) throw new Error(`Could not resolve connector id for y_pn=${yazakiPN}`);
-    const url = `${backendUrl}/api/connectors/${target.id}`;
+    const url = `${backendUrl}/connectors/${target.id}`;
     const res = await fetch(url, { method: "DELETE", mode: "cors", headers: apiHeaders(url) });
     const text = await res.text();
     if (!res.ok) throw new Error(`Failed to delete connector: ${res.status} ${res.statusText} - ${text}`);
