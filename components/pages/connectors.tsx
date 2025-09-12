@@ -241,13 +241,14 @@ export default function Connectors({
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {connector.image_path ? (
                       <img
-                        src={`${backendUrl}${connector.image_path}`}
+                        src={`${backendUrl}/media${connector.image_path}`}
                         alt={connector.yazakiPN}
                         className="h-10 w-10 rounded object-cover border"
                       />
                     ) : (
                       "—"
                     )}
+                    {/* {`${backendUrl}/media${connector.image_path}`} */}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {connector.yazakiPN}
