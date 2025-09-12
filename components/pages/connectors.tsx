@@ -1,6 +1,5 @@
 "use client";
-
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { Connector } from "@/app/page";
 import Pagination from "@/components/pagination";
 import Modal from "@/components/ui/modal";
@@ -24,7 +23,118 @@ export default function Connectors({
   const [currentPage, setCurrentPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [editingConnector, setEditingConnector] = useState<Connector | null>(null);
+  const [imageCache, setImageCache] = useState<Map<string, string>>(new Map());
+  
   const itemsPerPage = 10;
+  const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000").replace(/\/+$/, "");
+
+  // Helper function to generate correct media URLs
+  const getMediaUrl = (path: string | null | undefined): string | null => {
+    if (!path) return null;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `${backendUrl}/media${cleanPath}`;
+  };
+
+  // Function to fetch image as blob and create object URL (for ngrok)
+  const fetchImageAsBlob = async (imageUrl: string): Promise<string | null> => {
+    try {
+      const headers: HeadersInit = {};
+      if (imageUrl.includes('ngrok')) {
+        headers['ngrok-skip-browser-warning'] = 'true';
+      }
+
+      const response = await fetch(imageUrl, { headers });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      return URL.createObjectURL(blob);
+    } catch (error) {
+      console.error('Failed to fetch image as blob:', error);
+      return null;
+    }
+  };
+
+  // Custom Image component that handles ngrok
+  const ConnectorImage = ({ connector }: { connector: Connector }) => {
+    const [imageSrc, setImageSrc] = useState<string | null>(null);
+    const [imageError, setImageError] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+      const loadImage = async () => {
+        if (!connector.image_path) {
+          setLoading(false);
+          return;
+        }
+
+        const imageUrl = getMediaUrl(connector.image_path);
+        if (!imageUrl) {
+          setLoading(false);
+          return;
+        }
+
+        // Check cache first
+        if (imageCache.has(imageUrl)) {
+          setImageSrc(imageCache.get(imageUrl)!);
+          setLoading(false);
+          return;
+        }
+
+        try {
+          // For ngrok URLs, fetch as blob first
+          if (imageUrl.includes('ngrok')) {
+            const blobUrl = await fetchImageAsBlob(imageUrl);
+            if (blobUrl) {
+              setImageSrc(blobUrl);
+              setImageCache(prev => new Map(prev.set(imageUrl, blobUrl)));
+            } else {
+              setImageError(true);
+            }
+          } else {
+            // For non-ngrok URLs, use direct URL
+            setImageSrc(imageUrl);
+          }
+        } catch (error) {
+          console.error('Error loading image:', error);
+          setImageError(true);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadImage();
+    }, [connector.image_path, connector.yazakiPN]);
+
+    if (loading) {
+      return (
+        <div className="h-10 w-10 rounded border bg-gray-100 flex items-center justify-center text-gray-400 text-xs animate-pulse">
+          ...
+        </div>
+      );
+    }
+
+    if (imageError || !imageSrc) {
+      return (
+        <div className="h-10 w-10 rounded border bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
+          No Image
+        </div>
+      );
+    }
+
+    return (
+      <img
+        src={imageSrc}
+        alt={connector.yazakiPN}
+        className="h-10 w-10 rounded object-cover border"
+        onError={() => {
+          console.error('Image failed to load:', imageSrc);
+          setImageError(true);
+        }}
+      />
+    );
+  };
 
   const suppliers = useMemo(() => {
     return [...new Set(connectors.map((c) => c.supplierName))].sort();
@@ -91,12 +201,13 @@ export default function Connectors({
 
       // Upload files first (if any), then merge returned paths into connector payload
       const hasAnyFile = Boolean(files && (files.image || files.drawing2d || files.model3d));
+      
       if (hasAnyFile) {
         const uploadFormData = new FormData();
-
+        
         // Base filename based on Yazaki PN so backend can name consistently
         uploadFormData.append('base_filename', connectorData.yazakiPN);
-
+        
         // Subdirectory hints (adjust to your backend logic)
         uploadFormData.append('subdir1', 'images');
         uploadFormData.append('subdir2', '2d_drawing_files');
@@ -125,13 +236,13 @@ export default function Connectors({
         const uploadResult = await uploadResponse.json();
         console.log('[connectors] upload result:', uploadResult);
 
-        // Adapt to backend response shape: { files: [{ file_number, full_url, file_path, ... }, ...] }
+        // Adapt to backend response shape: { files: [{ file_key, full_url, file_path, ... }, ...] }
         const resultFiles: Array<any> = Array.isArray(uploadResult?.files) ? uploadResult.files : [];
-        const byNumber = (n: number) => resultFiles.find((f) => Number(f?.file_number) === n);
-
-        const file1 = byNumber(1);
-        const file2 = byNumber(2);
-        const file3 = byNumber(3);
+        
+        const byKey = (key: string) => resultFiles.find((f) => f?.file_key === key);
+        const file1 = byKey('file1');
+        const file2 = byKey('file2');
+        const file3 = byKey('file3');
 
         if (files?.image && (file1?.full_url || file1?.file_path)) {
           const p = file1.full_url || file1.file_path;
@@ -153,6 +264,7 @@ export default function Connectors({
       } else {
         await onAddConnector(updatedConnectorData);
       }
+
       setShowModal(false);
       setEditingConnector(null);
     } catch (error) {
@@ -166,7 +278,16 @@ export default function Connectors({
     setEditingConnector(null);
   };
 
-  const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000").replace(/\/+$/, "");
+  // Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      imageCache.forEach((blobUrl) => {
+        if (blobUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(blobUrl);
+        }
+      });
+    };
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -227,7 +348,7 @@ export default function Connectors({
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Supplier Name
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-glue-500 uppercase tracking-wider">
                   Price
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -239,16 +360,7 @@ export default function Connectors({
               {paginatedConnectors.map((connector) => (
                 <tr key={connector.yazakiPN} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {connector.image_path ? (
-                      <img
-                        src={`${backendUrl}/media${connector.image_path}`}
-                        alt={connector.yazakiPN}
-                        className="h-10 w-10 rounded object-cover border"
-                      />
-                    ) : (
-                      "—"
-                    )}
-                    {/* {`${backendUrl}/media${connector.image_path}`} */}
+                    <ConnectorImage connector={connector} />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {connector.yazakiPN}
